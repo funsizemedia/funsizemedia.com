@@ -1,0 +1,1965 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instagram Pinned Banner Splitter</title>
+    <style>
+      :root {
+        --page-bg: linear-gradient(180deg, #fff9f1 0%, #f9efe2 48%, #f4eadf 100%);
+        --panel-bg: rgba(255, 252, 247, 0.92);
+        --panel-border: rgba(117, 80, 42, 0.16);
+        --ink: #1f2430;
+        --muted: #635a52;
+        --accent: #ff7a59;
+        --accent-deep: #dd5c3c;
+        --accent-soft: rgba(255, 122, 89, 0.13);
+        --secondary: #107c78;
+        --secondary-soft: rgba(16, 124, 120, 0.12);
+        --shadow: 0 20px 45px rgba(94, 67, 39, 0.12);
+        --radius-lg: 28px;
+        --radius-md: 18px;
+        --radius-sm: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--page-bg);
+        color: var(--ink);
+        font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .page-shell {
+        width: min(1360px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 28px 0 44px;
+      }
+
+      .hero {
+        display: block;
+        margin-bottom: 22px;
+      }
+
+      .hero-copy,
+      .hero-card,
+      .panel {
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .hero-copy {
+        border-radius: var(--radius-lg);
+        padding: 28px 28px 30px;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 0.77rem;
+        font-weight: 700;
+        color: var(--accent-deep);
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+      }
+
+      h1 {
+        font-family: "Iowan Old Style", "Georgia", serif;
+        font-size: clamp(2rem, 3.7vw, 3.5rem);
+        line-height: 0.96;
+        letter-spacing: -0.03em;
+        max-width: 10ch;
+      }
+
+      .hero-copy p {
+        margin: 16px 0 0;
+        font-size: 1rem;
+        line-height: 1.65;
+        color: var(--muted);
+        max-width: 62ch;
+      }
+
+      .hero-card {
+        border-radius: var(--radius-lg);
+        padding: 22px;
+      }
+
+      .hero-card h2 {
+        font-size: 1rem;
+        margin-bottom: 14px;
+      }
+
+      .metric-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .metric {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: center;
+        padding: 13px 14px;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .metric span {
+        color: var(--muted);
+        font-size: 0.94rem;
+      }
+
+      .metric strong {
+        font-size: 0.98rem;
+        text-align: right;
+      }
+
+      .step-stack {
+        display: grid;
+        gap: 22px;
+      }
+
+      .panel {
+        border-radius: var(--radius-lg);
+        padding: 24px;
+      }
+
+      .step-header {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .step-header p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .step-kicker {
+        margin: 0;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--accent-deep);
+      }
+
+      .create-grid {
+        display: grid;
+        gap: 18px;
+      }
+
+      .upload-guidance {
+        margin: 0 0 14px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .upload-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 180px;
+        padding: 24px 18px;
+        border: 2px dashed rgba(221, 92, 60, 0.42);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.94);
+        text-align: center;
+        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+        cursor: pointer;
+      }
+
+      .upload-card:hover,
+      .upload-card.is-over {
+        transform: translateY(-1px);
+        border-color: rgba(221, 92, 60, 0.72);
+        background: #fffaf5;
+        box-shadow: 0 12px 24px rgba(255, 122, 89, 0.12);
+      }
+
+      .upload-card-eyebrow {
+        margin: 0;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--accent-deep);
+      }
+
+      .upload-card strong {
+        font-size: 1rem;
+      }
+
+      .upload-card span {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .upload-card-or {
+        font-size: 0.9rem;
+      }
+
+      .upload-button {
+        min-width: 168px;
+      }
+
+      .hidden-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+
+      .status-line,
+      .warning-line {
+        margin: 14px 0 0;
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        font-size: 0.95rem;
+      }
+
+      .status-line {
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--muted);
+      }
+
+      .warning-line {
+        background: rgba(255, 122, 89, 0.12);
+        color: #8d3e2b;
+      }
+
+      .warning-line[hidden] {
+        display: none;
+      }
+
+      .canvas-shell {
+        position: relative;
+        margin-top: 18px;
+        overflow: hidden;
+        background: #ffffff;
+        border: 1px solid rgba(117, 80, 42, 0.16);
+      }
+
+      canvas {
+        display: block;
+        background: #ffffff;
+      }
+
+      #editorCanvas,
+      #gridPreviewCanvas,
+      .post-preview-canvas {
+        width: 100%;
+        height: auto;
+      }
+
+      #editorCanvas {
+        touch-action: none;
+        cursor: grab;
+      }
+
+      #editorCanvas.is-dragging {
+        cursor: grabbing;
+      }
+
+      .controls-grid {
+        display: grid;
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .controls-grid[hidden] {
+        display: none;
+      }
+
+      .control-card {
+        padding: 16px;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.76);
+        border: 1px solid rgba(117, 80, 42, 0.1);
+      }
+
+      .control-card h3 {
+        font-size: 0.98rem;
+        margin-bottom: 12px;
+      }
+
+      .control-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .control-field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .control-field label {
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+
+      .control-field input[type="number"],
+      .control-field input[type="range"] {
+        width: 100%;
+      }
+
+      .control-field input[type="number"] {
+        border: 1px solid rgba(117, 80, 42, 0.16);
+        border-radius: 12px;
+        padding: 11px 12px;
+        background: rgba(255, 255, 255, 0.92);
+      }
+
+      .control-field input[type="range"] {
+        accent-color: var(--accent);
+      }
+
+      .micro-copy {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.5;
+      }
+
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .button-row button,
+      .action-stack button,
+      .download-one,
+      .upload-button {
+        border: 0;
+        border-radius: 999px;
+        padding: 12px 16px;
+        font-weight: 700;
+        transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
+      }
+
+      .button-row button:hover,
+      .action-stack button:hover,
+      .download-one:hover,
+      .upload-button:hover {
+        transform: translateY(-1px);
+      }
+
+      .button-row button:disabled,
+      .action-stack button:disabled,
+      .download-one:disabled,
+      .upload-button:disabled {
+        opacity: 0.48;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .secondary-button {
+        background: rgba(16, 124, 120, 0.1);
+        color: var(--secondary);
+      }
+
+      .soft-button {
+        background: rgba(31, 36, 48, 0.08);
+        color: var(--ink);
+      }
+
+      .primary-button {
+        background: linear-gradient(135deg, var(--accent), #ff9155);
+        color: white;
+        box-shadow: 0 14px 22px rgba(255, 122, 89, 0.22);
+      }
+
+      .section-block {
+        padding: 18px;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.76);
+        border: 1px solid rgba(117, 80, 42, 0.1);
+      }
+
+      .section-block h3 {
+        margin-bottom: 10px;
+        font-size: 1rem;
+      }
+
+      .section-block p,
+      .section-block li {
+        color: var(--muted);
+        line-height: 1.58;
+      }
+
+      .action-stack {
+        display: grid;
+        gap: 10px;
+      }
+
+      .action-note {
+        margin: 2px 0 0;
+        font-size: 0.88rem;
+      }
+
+      .how-to-list {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .how-to-list li + li {
+        margin-top: 10px;
+      }
+
+      .guide-legend {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.92rem;
+      }
+
+      .legend-swatch {
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        flex: 0 0 auto;
+      }
+
+      .legend-swatch.overlap {
+        background: rgba(255, 122, 89, 0.18);
+        border: 1px solid rgba(221, 92, 60, 0.25);
+      }
+
+      .legend-swatch.teal {
+        background: rgba(16, 124, 120, 0.12);
+        border: 2px dashed rgba(16, 124, 120, 0.92);
+      }
+
+      .preview-panel {
+        margin-top: 22px;
+      }
+
+      .preview-stack {
+        display: grid;
+        gap: 18px;
+      }
+
+      .grid-preview-card,
+      .post-card {
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.76);
+        border: 1px solid rgba(117, 80, 42, 0.1);
+        overflow: hidden;
+      }
+
+      .grid-preview-copy,
+      .post-card-head {
+        padding: 16px 16px 0;
+      }
+
+      .grid-preview-head {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: start;
+        gap: 12px;
+        padding: 16px 16px 0;
+      }
+
+      .grid-preview-head .grid-preview-copy {
+        padding: 0;
+      }
+
+      .preview-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .grid-preview-copy p,
+      .post-card-head p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .post-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .post-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .post-preview-canvas-wrap,
+      .grid-preview-canvas-wrap {
+        padding: 16px;
+      }
+
+      .post-preview-canvas-wrap {
+        padding-top: 14px;
+      }
+
+      .download-one {
+        background: rgba(16, 124, 120, 0.1);
+        color: var(--secondary);
+      }
+
+      .foot-note {
+        margin-top: 14px;
+        font-size: 0.88rem;
+        color: var(--muted);
+      }
+
+      .error-screen {
+        width: min(760px, calc(100% - 32px));
+        margin: 42px auto;
+        padding: 28px;
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(141, 62, 43, 0.16);
+        background: rgba(255, 245, 240, 0.96);
+        color: #6e3426;
+        box-shadow: var(--shadow);
+      }
+
+      .error-screen[hidden] {
+        display: none;
+      }
+
+      @media (max-width: 1080px) {
+        .post-preview-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .grid-preview-head {
+          align-items: stretch;
+        }
+
+        .preview-actions {
+          width: 100%;
+        }
+
+        .preview-actions .primary-button {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .page-shell {
+          width: min(100% - 20px, 1360px);
+          padding-top: 18px;
+        }
+
+        .hero-copy,
+        .hero-card,
+        .panel {
+          padding: 18px;
+        }
+
+        .control-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-shell" id="appShell">
+      <header class="hero">
+        <section class="hero-copy">
+          <p class="eyebrow">Instagram Banner Helper</p>
+          <h1>Split one wide banner into pinned posts.</h1>
+          <p>
+            Design the full banner first, upload it here, then export the three post images
+            you can post and pin on Instagram.
+          </p>
+        </section>
+      </header>
+
+      <main class="step-stack" id="appLayout">
+        <section class="panel">
+          <div class="step-header">
+            <p class="step-kicker">Step 1</p>
+            <div>
+              <h2>Create Graphic</h2>
+              <p>Set up the banner at the right size before you upload it into the editor.</p>
+            </div>
+          </div>
+
+          <div class="create-grid">
+            <section class="section-block" aria-label="Layout">
+              <h3>Layout</h3>
+              <div class="metric-list">
+                <div class="metric">
+                  <span>Full Banner Size</span>
+                  <strong id="metricBannerSize"></strong>
+                </div>
+                <div class="metric">
+                  <span>Post Image Size</span>
+                  <strong id="metricPostSize"></strong>
+                </div>
+                <div class="metric">
+                  <span>Grid Image Size</span>
+                  <strong id="metricGridSize"></strong>
+                </div>
+                <div class="metric">
+                  <span>Overlap Zone Size</span>
+                  <strong id="metricOverlapSize"></strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="section-block">
+              <h3>Sizing Guidance</h3>
+              <p>
+                Design your banner at <strong data-banner-size></strong>. Keep important text and
+                faces between the dashed crop lines so they stay visible in the Instagram grid.
+              </p>
+
+              <div class="guide-legend">
+                <div class="legend-item">
+                  <span class="legend-swatch overlap" aria-hidden="true"></span>
+                  <span>Light red bands mark the Overlap Zone shared between neighboring posts.</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-swatch teal" aria-hidden="true"></span>
+                  <span>Teal dashed lines show the exact grid crop breaks used in the Instagram profile grid.</span>
+                </div>
+              </div>
+
+              <p class="foot-note">
+                The far left and far right posts each still include an extra
+                <strong data-edge-margin></strong> that only appears when someone opens that post.
+              </p>
+
+              <div class="action-stack">
+                <button class="secondary-button" id="templateButton" type="button"></button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="step-header">
+            <p class="step-kicker">Step 2</p>
+            <div>
+              <h2>Upload Section</h2>
+              <p>Upload the finished banner graphic you want to split into pinned posts.</p>
+            </div>
+          </div>
+
+          <div class="upload-card" id="uploadCard" role="button" tabindex="0" aria-label="Upload a banner image by clicking or dragging a file here">
+            <input class="hidden-input" id="imageInput" type="file" accept="image/*" />
+            <p class="upload-card-eyebrow">Drag And Drop</p>
+            <strong>Drop Your Banner Here</strong>
+            <span class="upload-card-or">or</span>
+            <button class="primary-button upload-button" id="chooseFileButton" type="button">Choose Image</button>
+            <span id="fileNameLine">No File Loaded Yet.</span>
+          </div>
+
+          <p class="status-line" id="statusMessage" role="status">The editor is showing the guide template. Upload a banner to start.</p>
+          <p class="warning-line" id="warningMessage" hidden></p>
+        </section>
+
+        <section class="panel">
+          <div class="step-header">
+            <p class="step-kicker">Step 3</p>
+            <div>
+              <h2>Canvas Editor</h2>
+              <p>Check the full banner view here. Editing tools only appear when the upload size differs from the full banner size.</p>
+            </div>
+          </div>
+
+          <div class="canvas-shell">
+            <canvas id="editorCanvas"></canvas>
+          </div>
+
+          <div class="controls-grid" id="controlsGrid" hidden>
+            <section class="control-card">
+              <h3>Zoom</h3>
+              <div class="control-row">
+                <div class="control-field">
+                  <label for="zoomSlider">Banner Size Inside The Frame</label>
+                  <input id="zoomSlider" type="range" min="100" max="400" step="1" value="100" />
+                </div>
+                <div class="control-field">
+                  <label for="zoomInput">Zoom Percentage</label>
+                  <input id="zoomInput" type="number" min="100" max="400" step="1" value="100" inputmode="numeric" />
+                </div>
+              </div>
+              <p class="micro-copy">100% means the auto-fit starting size.</p>
+            </section>
+
+            <section class="control-card">
+              <h3>Position</h3>
+              <div class="control-row">
+                <div class="control-field">
+                  <label for="xInput">Left / Right (px)</label>
+                  <input id="xInput" type="number" step="1" value="0" inputmode="numeric" />
+                </div>
+                <div class="control-field">
+                  <label for="yInput">Up / Down (px)</label>
+                  <input id="yInput" type="number" step="1" value="0" inputmode="numeric" />
+                </div>
+              </div>
+              <p class="micro-copy">The middle of the canvas is <strong>0, 0</strong>.</p>
+            </section>
+
+            <section class="control-card">
+              <h3>Quick Align</h3>
+              <div class="button-row">
+                <button class="secondary-button" id="centerButton" type="button">Center Image</button>
+                <button class="soft-button" id="alignLeftButton" type="button">Align Left</button>
+                <button class="soft-button" id="alignRightButton" type="button">Align Right</button>
+                <button class="soft-button" id="resetFitButton" type="button">Reset Fit</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel preview-panel">
+          <div class="step-header">
+            <p class="step-kicker">Step 4</p>
+            <div>
+              <h2>Live Preview Section</h2>
+              <p>Check the grid crop and the three post exports, then download the finished images.</p>
+            </div>
+          </div>
+
+          <div class="preview-stack">
+            <section class="grid-preview-card">
+              <div class="grid-preview-head">
+                <div class="grid-preview-copy">
+                  <h3>Grid Preview</h3>
+                  <p>Only the center crop of each post shows in the grid.</p>
+                </div>
+                <div class="preview-actions">
+                  <button class="primary-button" id="downloadAllButton" type="button" disabled>Download All Post Images</button>
+                </div>
+              </div>
+              <div class="grid-preview-canvas-wrap">
+                <canvas id="gridPreviewCanvas"></canvas>
+              </div>
+            </section>
+
+            <section class="post-preview-grid" id="postPreviewGrid" aria-label="Exported Posts"></section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="error-screen" id="configError" hidden></div>
+
+    <script>
+      /**
+       * Single place to change the banner geometry.
+       * Update these values and the editor, guides, template download, and exports follow automatically.
+       */
+      const CONFIG = Object.freeze({
+        postWidth: 1080,
+        postHeight: 1350,
+        gridVisibleWidth: 1012,
+        postCount: 3,
+        maxZoomMultiplier: 4,
+        templateFileName: "banner-template",
+      });
+
+      /** Editor state where 0,0 is the center of the banner canvas and the image. */
+      const state = {
+        image: null,
+        scale: 1,
+        offsetX: 0,
+        offsetY: 0,
+        minScale: 1,
+        isDragging: false,
+        pointerId: null,
+        dragStartX: 0,
+        dragStartY: 0,
+        originOffsetX: 0,
+        originOffsetY: 0,
+      };
+
+      const dom = {
+        postPreviewCanvases: [],
+        postDownloadButtons: [],
+      };
+
+      let geometry = null;
+
+      document.addEventListener("DOMContentLoaded", init);
+
+      /**
+       * Boots the app and stops early with a clear error if the dimension config does not make sense.
+       */
+      function init() {
+        try {
+          validateConfig(CONFIG);
+          geometry = deriveGeometry(CONFIG);
+          cacheDom();
+          buildPostPreviewCards();
+          prepareCanvases();
+          applyGeometryText();
+          bindEvents();
+          updateUiState();
+          renderAll();
+        } catch (error) {
+          showConfigError(error instanceof Error ? error.message : String(error));
+        }
+      }
+
+      /**
+       * Validates the public dimension settings so exports stay exact and guide math remains pixel-perfect.
+       * @param {typeof CONFIG} config
+       */
+      function validateConfig(config) {
+        const requiredKeys = ["postWidth", "postHeight", "gridVisibleWidth", "postCount", "maxZoomMultiplier"];
+
+        requiredKeys.forEach((key) => {
+          if (!Number.isFinite(config[key]) || config[key] <= 0) {
+            throw new Error(`CONFIG.${key} must be a positive number.`);
+          }
+        });
+
+        if (!Number.isInteger(config.postWidth) || !Number.isInteger(config.postHeight) || !Number.isInteger(config.gridVisibleWidth) || !Number.isInteger(config.postCount)) {
+          throw new Error("The post and grid dimensions must be whole pixels.");
+        }
+
+        if (config.gridVisibleWidth > config.postWidth) {
+          throw new Error("CONFIG.gridVisibleWidth cannot be wider than CONFIG.postWidth.");
+        }
+
+        if (config.postCount < 1) {
+          throw new Error("CONFIG.postCount must be at least 1.");
+        }
+
+        if ((config.postWidth - config.gridVisibleWidth) % 2 !== 0) {
+          throw new Error("CONFIG.postWidth minus CONFIG.gridVisibleWidth must be an even number so the edge margin lands on whole pixels.");
+        }
+
+        if (config.maxZoomMultiplier < 1) {
+          throw new Error("CONFIG.maxZoomMultiplier must be 1 or greater.");
+        }
+      }
+
+      /**
+       * Derives every banner measurement from the editable config.
+       * @param {typeof CONFIG} config
+       */
+      function deriveGeometry(config) {
+        const edgeMargin = (config.postWidth - config.gridVisibleWidth) / 2;
+        const overlapWidth = config.postWidth - config.gridVisibleWidth;
+        const bannerWidth = config.gridVisibleWidth * config.postCount + edgeMargin * 2;
+        const sliceRects = Array.from({ length: config.postCount }, (_, index) => ({
+          index,
+          x: index * config.gridVisibleWidth,
+          y: 0,
+          width: config.postWidth,
+          height: config.postHeight,
+          gridX: index * config.gridVisibleWidth + edgeMargin,
+          gridWidth: config.gridVisibleWidth,
+        }));
+        const overlapZones = sliceRects.slice(0, -1).map((slice, index) => {
+          const nextSlice = sliceRects[index + 1];
+          return {
+            x: nextSlice.x,
+            width: slice.x + slice.width - nextSlice.x,
+          };
+        }).filter((zone) => zone.width > 0);
+        const dashedGuideLines = uniqueSortedNumbers(
+          sliceRects.flatMap((slice) => [slice.gridX, slice.gridX + slice.gridWidth])
+        );
+
+        return {
+          edgeMargin,
+          overlapWidth,
+          bannerWidth,
+          bannerHeight: config.postHeight,
+          gridPreviewWidth: config.gridVisibleWidth * config.postCount,
+          centerX: bannerWidth / 2,
+          centerY: config.postHeight / 2,
+          sliceRects,
+          overlapZones,
+          dashedGuideLines,
+        };
+      }
+
+      /**
+       * Collects the static elements once so the rest of the code can focus on behavior.
+       */
+      function cacheDom() {
+        dom.appShell = document.getElementById("appShell");
+        dom.appLayout = document.getElementById("appLayout");
+        dom.configError = document.getElementById("configError");
+        dom.metricBannerSize = document.getElementById("metricBannerSize");
+        dom.metricPostSize = document.getElementById("metricPostSize");
+        dom.metricGridSize = document.getElementById("metricGridSize");
+        dom.metricOverlapSize = document.getElementById("metricOverlapSize");
+        dom.imageInput = document.getElementById("imageInput");
+        dom.uploadCard = document.getElementById("uploadCard");
+        dom.chooseFileButton = document.getElementById("chooseFileButton");
+        dom.fileNameLine = document.getElementById("fileNameLine");
+        dom.statusMessage = document.getElementById("statusMessage");
+        dom.warningMessage = document.getElementById("warningMessage");
+        dom.editorCanvas = document.getElementById("editorCanvas");
+        dom.controlsGrid = document.getElementById("controlsGrid");
+        dom.gridPreviewCanvas = document.getElementById("gridPreviewCanvas");
+        dom.zoomSlider = document.getElementById("zoomSlider");
+        dom.zoomInput = document.getElementById("zoomInput");
+        dom.xInput = document.getElementById("xInput");
+        dom.yInput = document.getElementById("yInput");
+        dom.centerButton = document.getElementById("centerButton");
+        dom.alignLeftButton = document.getElementById("alignLeftButton");
+        dom.alignRightButton = document.getElementById("alignRightButton");
+        dom.resetFitButton = document.getElementById("resetFitButton");
+        dom.templateButton = document.getElementById("templateButton");
+        dom.downloadAllButton = document.getElementById("downloadAllButton");
+        dom.postPreviewGrid = document.getElementById("postPreviewGrid");
+      }
+
+      /**
+       * Builds the download cards so they always match CONFIG.postCount.
+       */
+      function buildPostPreviewCards() {
+        dom.postPreviewGrid.innerHTML = "";
+        dom.postPreviewCanvases = [];
+        dom.postDownloadButtons = [];
+        dom.postPreviewGrid.style.gridTemplateColumns = `repeat(${Math.min(geometry.sliceRects.length, 3)}, minmax(0, 1fr))`;
+
+        geometry.sliceRects.forEach((slice) => {
+          const card = document.createElement("article");
+          card.className = "post-card";
+
+          const head = document.createElement("div");
+          head.className = "post-card-head";
+
+          const titleWrap = document.createElement("div");
+          const heading = document.createElement("h3");
+          heading.textContent = getSliceHeading(slice.index);
+          titleWrap.appendChild(heading);
+
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "download-one";
+          button.textContent = "Download";
+          button.disabled = true;
+          button.addEventListener("click", () => downloadSingleSlice(slice.index));
+
+          head.append(titleWrap, button);
+
+          const canvasWrap = document.createElement("div");
+          canvasWrap.className = "post-preview-canvas-wrap";
+
+          const canvas = document.createElement("canvas");
+          canvas.className = "post-preview-canvas";
+          canvas.width = CONFIG.postWidth;
+          canvas.height = CONFIG.postHeight;
+          canvasWrap.appendChild(canvas);
+
+          card.append(head, canvasWrap);
+          dom.postPreviewGrid.appendChild(card);
+          dom.postPreviewCanvases.push(canvas);
+          dom.postDownloadButtons.push(button);
+        });
+      }
+
+      /**
+       * Sets real drawing sizes so the exported images match the configured Instagram dimensions exactly.
+       */
+      function prepareCanvases() {
+        dom.editorCanvas.width = geometry.bannerWidth;
+        dom.editorCanvas.height = geometry.bannerHeight;
+        dom.gridPreviewCanvas.width = geometry.gridPreviewWidth;
+        dom.gridPreviewCanvas.height = geometry.bannerHeight;
+      }
+
+      /**
+       * Writes the derived dimensions into the UI copy.
+       */
+      function applyGeometryText() {
+        dom.metricBannerSize.textContent = formatSize(geometry.bannerWidth, geometry.bannerHeight);
+        dom.metricPostSize.textContent = formatSize(CONFIG.postWidth, CONFIG.postHeight);
+        dom.metricGridSize.textContent = formatSize(CONFIG.gridVisibleWidth, CONFIG.postHeight);
+        dom.metricOverlapSize.textContent = `${geometry.overlapWidth}px`;
+        dom.templateButton.textContent = `Download Guide Template (${formatSize(geometry.bannerWidth, geometry.bannerHeight)} PNG)`;
+
+        document.querySelectorAll("[data-banner-size]").forEach((node) => {
+          node.textContent = formatSize(geometry.bannerWidth, geometry.bannerHeight);
+        });
+
+        document.querySelectorAll("[data-edge-margin]").forEach((node) => {
+          node.textContent = `${geometry.edgeMargin}px`;
+        });
+      }
+
+      /**
+       * Hooks up upload, drag, zoom, and download events.
+       */
+      function bindEvents() {
+        dom.imageInput.addEventListener("change", handleImageSelection);
+        dom.chooseFileButton.addEventListener("click", handleChooseFileClick);
+        dom.uploadCard.addEventListener("click", handleUploadCardClick);
+        dom.uploadCard.addEventListener("keydown", handleUploadCardKeydown);
+        dom.zoomSlider.addEventListener("input", () => {
+          setZoomByPercent(Number(dom.zoomSlider.value));
+        });
+        dom.zoomInput.addEventListener("input", () => {
+          if (dom.zoomInput.value === "") {
+            return;
+          }
+          setZoomByPercent(Number(dom.zoomInput.value));
+        });
+        dom.xInput.addEventListener("input", () => {
+          setOffsetFromInput("x");
+        });
+        dom.yInput.addEventListener("input", () => {
+          setOffsetFromInput("y");
+        });
+        dom.centerButton.addEventListener("click", () => setAlignment("center"));
+        dom.alignLeftButton.addEventListener("click", () => setAlignment("left"));
+        dom.alignRightButton.addEventListener("click", () => setAlignment("right"));
+        dom.resetFitButton.addEventListener("click", resetFit);
+        dom.templateButton.addEventListener("click", downloadTemplate);
+        dom.downloadAllButton.addEventListener("click", downloadAllSlices);
+        dom.editorCanvas.addEventListener("pointerdown", handlePointerDown);
+        dom.editorCanvas.addEventListener("pointermove", handlePointerMove);
+        dom.editorCanvas.addEventListener("pointerup", endPointerDrag);
+        dom.editorCanvas.addEventListener("pointercancel", endPointerDrag);
+        dom.editorCanvas.addEventListener("wheel", handleCanvasWheel, { passive: false });
+        dom.uploadCard.addEventListener("dragover", handleUploadDragOver);
+        dom.uploadCard.addEventListener("dragleave", handleUploadDragLeave);
+        dom.uploadCard.addEventListener("drop", handleUploadDrop);
+      }
+
+      /**
+       * Syncs button disabled states with whether a banner image is loaded.
+       */
+      function updateUiState() {
+        const hasImage = Boolean(state.image);
+        const hasAdjustmentTools = hasImage && !dom.warningMessage.hidden;
+
+        [dom.zoomSlider, dom.zoomInput, dom.xInput, dom.yInput, dom.centerButton, dom.alignLeftButton, dom.alignRightButton, dom.resetFitButton].forEach((node) => {
+          node.disabled = !hasAdjustmentTools;
+        });
+
+        dom.controlsGrid.hidden = !hasAdjustmentTools;
+        dom.downloadAllButton.disabled = !hasImage;
+        dom.postDownloadButtons.forEach((button) => {
+          button.disabled = !hasImage;
+        });
+      }
+
+      /**
+       * Opens the hidden file input from the visible upload button without double-triggering the card click.
+       * @param {MouseEvent} event
+       */
+      function handleChooseFileClick(event) {
+        event.stopPropagation();
+        openFilePicker();
+      }
+
+      /**
+       * Lets users click anywhere in the drag area to choose a file.
+       */
+      function handleUploadCardClick() {
+        openFilePicker();
+      }
+
+      /**
+       * Supports keyboard activation on the upload card.
+       * @param {KeyboardEvent} event
+       */
+      function handleUploadCardKeydown(event) {
+        if (event.key !== "Enter" && event.key !== " ") {
+          return;
+        }
+
+        event.preventDefault();
+        openFilePicker();
+      }
+
+      /**
+       * Opens the hidden file picker.
+       */
+      function openFilePicker() {
+        dom.imageInput.click();
+      }
+
+      /**
+       * Loads the chosen file into an <img>, then fits it to the banner.
+       * @param {Event} event
+       */
+      async function handleImageSelection(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) {
+          return;
+        }
+
+        await processImageFile(file);
+        dom.imageInput.value = "";
+      }
+
+      /**
+       * Drag and drop helper for the upload card.
+       * @param {DragEvent} event
+       */
+      function handleUploadDragOver(event) {
+        event.preventDefault();
+        dom.uploadCard.classList.add("is-over");
+      }
+
+      /**
+       * Upload card hover cleanup.
+       */
+      function handleUploadDragLeave() {
+        dom.uploadCard.classList.remove("is-over");
+      }
+
+      /**
+       * Accepts a dropped image file and processes it the same way as the file picker.
+       * @param {DragEvent} event
+       */
+      async function handleUploadDrop(event) {
+        event.preventDefault();
+        dom.uploadCard.classList.remove("is-over");
+        const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+        if (file) {
+          await processImageFile(file);
+        }
+      }
+
+      /**
+       * Validates, loads, and applies a new banner image.
+       * @param {File} file
+       */
+      async function processImageFile(file) {
+        if (!file.type.startsWith("image/")) {
+          setStatus("That file is not an image. Please choose a PNG, JPG, or WebP.");
+          return;
+        }
+
+        setStatus("Loading your banner…");
+
+        try {
+          const image = await loadImage(file);
+          state.image = image;
+          dom.fileNameLine.textContent = `${file.name} loaded.`;
+          fitImageToBanner(image);
+          const needsAdjustment = applySizeNotice(image);
+          if (needsAdjustment) {
+            setStatus("Banner loaded. Use the Canvas Editor tools below to resize or reposition the artwork.");
+          } else {
+            setStatus("Banner loaded. This file already matches the full banner size.");
+          }
+          renderAll();
+        } catch (error) {
+          state.image = null;
+          dom.fileNameLine.textContent = "No File Loaded Yet.";
+          setWarning("");
+          setStatus("That image could not be opened. Please try another file.");
+          updateUiState();
+          renderAll();
+        }
+      }
+
+      /**
+       * Wraps image loading so the rest of the app can work with a real HTMLImageElement.
+       * @param {File} file
+       * @returns {Promise<HTMLImageElement>}
+       */
+      function loadImage(file) {
+        return new Promise((resolve, reject) => {
+          const objectUrl = URL.createObjectURL(file);
+          const image = new Image();
+
+          image.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            resolve(image);
+          };
+
+          image.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error("Image failed to load."));
+          };
+
+          image.src = objectUrl;
+        });
+      }
+
+      /**
+       * Fits the current image so it fully covers the banner with no empty gaps.
+       * @param {HTMLImageElement} image
+       */
+      function fitImageToBanner(image) {
+        state.minScale = Math.max(geometry.bannerWidth / image.width, geometry.bannerHeight / image.height);
+        state.scale = state.minScale;
+        state.offsetX = 0;
+        state.offsetY = 0;
+      }
+
+      /**
+       * Resets the image back to the original auto-fit starting point.
+       */
+      function resetFit() {
+        if (!state.image) {
+          return;
+        }
+
+        fitImageToBanner(state.image);
+        renderAll();
+      }
+
+      /**
+       * Shows a warning only when the uploaded file is not the exact configured banner size.
+       * @param {HTMLImageElement} image
+       */
+      function applySizeNotice(image) {
+        if (image.width === geometry.bannerWidth && image.height === geometry.bannerHeight) {
+          setWarning("");
+          return false;
+        }
+
+        setWarning(`This file is ${image.width} × ${image.height}. It still works, but the exact banner size is ${formatSize(geometry.bannerWidth, geometry.bannerHeight)}, so the editor tools are available for resizing and repositioning.`);
+        return true;
+      }
+
+      /**
+       * Reads the x/y number inputs and applies them using the centered coordinate system.
+       * @param {"x"|"y"} axis
+       */
+      function setOffsetFromInput(axis) {
+        if (!state.image) {
+          return;
+        }
+
+        const nextValue = Number(axis === "x" ? dom.xInput.value : dom.yInput.value);
+        if (!Number.isFinite(nextValue)) {
+          return;
+        }
+
+        if (axis === "x") {
+          state.offsetX = nextValue;
+        } else {
+          state.offsetY = nextValue;
+        }
+
+        clampImageOffsets();
+        renderAll();
+      }
+
+      /**
+       * Applies a zoom percentage where 100% means the initial auto-fit size.
+       * @param {number} percent
+       * @param {{x:number,y:number}=} anchor
+       */
+      function setZoomByPercent(percent, anchor = { x: 0, y: 0 }) {
+        if (!state.image || !Number.isFinite(percent)) {
+          return;
+        }
+
+        const clampedPercent = clamp(percent, 100, CONFIG.maxZoomMultiplier * 100);
+        const nextScale = state.minScale * (clampedPercent / 100);
+        setScale(nextScale, anchor);
+        renderAll();
+      }
+
+      /**
+       * Zooms around a banner-space point so wheel zoom feels anchored under the pointer.
+       * @param {number} nextScale
+       * @param {{x:number,y:number}} anchor
+       */
+      function setScale(nextScale, anchor) {
+        if (!state.image) {
+          return;
+        }
+
+        const minScale = state.minScale;
+        const maxScale = state.minScale * CONFIG.maxZoomMultiplier;
+        const clampedScale = clamp(nextScale, minScale, maxScale);
+        const localX = (anchor.x - state.offsetX) / state.scale;
+        const localY = (anchor.y - state.offsetY) / state.scale;
+
+        state.scale = clampedScale;
+        state.offsetX = anchor.x - localX * clampedScale;
+        state.offsetY = anchor.y - localY * clampedScale;
+        clampImageOffsets();
+      }
+
+      /**
+       * Moves the image to a friendly horizontal snap point.
+       * @param {"center"|"left"|"right"} mode
+       */
+      function setAlignment(mode) {
+        if (!state.image) {
+          return;
+        }
+
+        const bounds = getOffsetBounds();
+
+        if (mode === "center") {
+          state.offsetX = 0;
+          state.offsetY = 0;
+        } else if (mode === "left") {
+          state.offsetX = bounds.maxX;
+        } else if (mode === "right") {
+          state.offsetX = -bounds.maxX;
+        }
+
+        clampImageOffsets();
+        renderAll();
+      }
+
+      /**
+       * Prevents empty transparent space from appearing in the exported banner.
+       */
+      function clampImageOffsets() {
+        if (!state.image) {
+          return;
+        }
+
+        const bounds = getOffsetBounds();
+        state.offsetX = clamp(state.offsetX, -bounds.maxX, bounds.maxX);
+        state.offsetY = clamp(state.offsetY, -bounds.maxY, bounds.maxY);
+      }
+
+      /**
+       * Returns how far the image can move while still covering the whole banner.
+       */
+      function getOffsetBounds() {
+        const drawWidth = state.image.width * state.scale;
+        const drawHeight = state.image.height * state.scale;
+
+        return {
+          maxX: Math.max(0, (drawWidth - geometry.bannerWidth) / 2),
+          maxY: Math.max(0, (drawHeight - geometry.bannerHeight) / 2),
+        };
+      }
+
+      /**
+       * Starts a drag move on the editor canvas.
+       * @param {PointerEvent} event
+       */
+      function handlePointerDown(event) {
+        if (!state.image) {
+          return;
+        }
+
+        const point = getCanvasPoint(event);
+        state.isDragging = true;
+        state.pointerId = event.pointerId;
+        state.dragStartX = point.centeredX;
+        state.dragStartY = point.centeredY;
+        state.originOffsetX = state.offsetX;
+        state.originOffsetY = state.offsetY;
+        dom.editorCanvas.classList.add("is-dragging");
+        dom.editorCanvas.setPointerCapture(event.pointerId);
+      }
+
+      /**
+       * Updates the image position while dragging.
+       * @param {PointerEvent} event
+       */
+      function handlePointerMove(event) {
+        if (!state.isDragging || event.pointerId !== state.pointerId || !state.image) {
+          return;
+        }
+
+        const point = getCanvasPoint(event);
+        state.offsetX = state.originOffsetX + (point.centeredX - state.dragStartX);
+        state.offsetY = state.originOffsetY + (point.centeredY - state.dragStartY);
+        clampImageOffsets();
+        renderAll();
+      }
+
+      /**
+       * Ends drag state cleanly.
+       * @param {PointerEvent} event
+       */
+      function endPointerDrag(event) {
+        if (!state.isDragging || event.pointerId !== state.pointerId) {
+          return;
+        }
+
+        state.isDragging = false;
+        state.pointerId = null;
+        dom.editorCanvas.classList.remove("is-dragging");
+        if (dom.editorCanvas.hasPointerCapture(event.pointerId)) {
+          dom.editorCanvas.releasePointerCapture(event.pointerId);
+        }
+      }
+
+      /**
+       * Zooms with the mouse wheel around the pointer location.
+       * @param {WheelEvent} event
+       */
+      function handleCanvasWheel(event) {
+        if (!state.image) {
+          return;
+        }
+
+        event.preventDefault();
+        const point = getCanvasPoint(event);
+        const zoomFactor = Math.exp(-event.deltaY * 0.0015);
+        const currentPercent = getZoomPercent();
+        setZoomByPercent(currentPercent * zoomFactor, { x: point.centeredX, y: point.centeredY });
+      }
+
+      /**
+       * Converts screen coordinates into real banner pixels and center-relative editor coordinates.
+       * @param {MouseEvent|PointerEvent|WheelEvent} event
+       */
+      function getCanvasPoint(event) {
+        const rect = dom.editorCanvas.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width) * dom.editorCanvas.width;
+        const y = ((event.clientY - rect.top) / rect.height) * dom.editorCanvas.height;
+
+        return {
+          x,
+          y,
+          centeredX: x - geometry.centerX,
+          centeredY: y - geometry.centerY,
+        };
+      }
+
+      /**
+       * Updates every output surface after a state change.
+       */
+      function renderAll() {
+        updateUiState();
+        syncInputsFromState();
+        renderEditor();
+        renderGridPreview();
+        renderPostPreviews();
+      }
+
+      /**
+       * Mirrors the current drag/zoom state back into the form controls.
+       */
+      function syncInputsFromState() {
+        dom.zoomSlider.min = "100";
+        dom.zoomSlider.max = String(CONFIG.maxZoomMultiplier * 100);
+        dom.zoomInput.min = "100";
+        dom.zoomInput.max = String(CONFIG.maxZoomMultiplier * 100);
+
+        const zoomPercent = state.image ? getZoomPercent() : 100;
+        dom.zoomSlider.value = String(Math.round(zoomPercent));
+        dom.zoomInput.value = String(Math.round(zoomPercent));
+        dom.xInput.value = String(Math.round(state.offsetX));
+        dom.yInput.value = String(Math.round(state.offsetY));
+      }
+
+      /**
+       * Draws the main editor canvas with guides on top.
+       */
+      function renderEditor() {
+        const ctx = dom.editorCanvas.getContext("2d");
+        ctx.clearRect(0, 0, dom.editorCanvas.width, dom.editorCanvas.height);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+
+        drawCanvasBackdrop(ctx, dom.editorCanvas.width, dom.editorCanvas.height);
+
+        if (state.image) {
+          drawUserArtwork(ctx, 0);
+        }
+
+        drawTemplateGuides(ctx, { showLabels: true });
+      }
+
+      /**
+       * Draws the stitched banner image onto any target canvas using a banner-space horizontal offset.
+       * @param {CanvasRenderingContext2D} ctx
+       * @param {number} xShift
+       */
+      function drawUserArtwork(ctx, xShift) {
+        if (!state.image) {
+          return;
+        }
+
+        const drawWidth = state.image.width * state.scale;
+        const drawHeight = state.image.height * state.scale;
+        const drawX = geometry.centerX - drawWidth / 2 + state.offsetX - xShift;
+        const drawY = geometry.centerY - drawHeight / 2 + state.offsetY;
+        ctx.drawImage(state.image, drawX, drawY, drawWidth, drawHeight);
+      }
+
+      /**
+       * Paints a plain white background so the template matches a real export canvas.
+       * @param {CanvasRenderingContext2D} ctx
+       * @param {number} width
+       * @param {number} height
+       */
+      function drawCanvasBackdrop(ctx, width, height) {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      /**
+       * Draws the clean template guides used in the editor and template download.
+       * @param {CanvasRenderingContext2D} ctx
+       * @param {{showLabels?: boolean}=} options
+       */
+      function drawTemplateGuides(ctx, options = {}) {
+        const { showLabels = false } = options;
+        ctx.save();
+        ctx.lineCap = "butt";
+        ctx.lineJoin = "miter";
+
+        geometry.overlapZones.forEach((zone) => {
+          ctx.fillStyle = "rgba(255, 122, 89, 0.15)";
+          ctx.fillRect(zone.x, 0, zone.width, geometry.bannerHeight);
+        });
+
+        geometry.dashedGuideLines.forEach((x) => {
+          ctx.beginPath();
+          ctx.strokeStyle = "rgba(16, 124, 120, 0.95)";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([12, 10]);
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, geometry.bannerHeight);
+          ctx.stroke();
+        });
+
+        if (showLabels) {
+          geometry.sliceRects.forEach((slice) => {
+            drawTopLabel(ctx, slice.x + slice.width / 2, getTemplateLabel(slice.index));
+          });
+        }
+
+        ctx.restore();
+      }
+
+      /**
+       * Renders the stitched grid crop preview.
+       */
+      function renderGridPreview() {
+        const ctx = dom.gridPreviewCanvas.getContext("2d");
+        ctx.clearRect(0, 0, dom.gridPreviewCanvas.width, dom.gridPreviewCanvas.height);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+
+        drawCanvasBackdrop(ctx, dom.gridPreviewCanvas.width, dom.gridPreviewCanvas.height);
+
+        if (state.image) {
+          drawUserArtwork(ctx, geometry.edgeMargin);
+        }
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
+        ctx.lineWidth = 8;
+        ctx.setLineDash([]);
+        geometry.sliceRects.forEach((slice, index) => {
+          if (index < geometry.sliceRects.length - 1) {
+            const dividerX = (index + 1) * CONFIG.gridVisibleWidth;
+            ctx.beginPath();
+            ctx.moveTo(dividerX, 0);
+            ctx.lineTo(dividerX, geometry.bannerHeight);
+            ctx.stroke();
+          }
+        });
+        ctx.restore();
+
+        if (!state.image) {
+          drawCenteredMessage(ctx, dom.gridPreviewCanvas.width, dom.gridPreviewCanvas.height, "Grid preview", "The center crop of each post will appear here.");
+        }
+      }
+
+      /**
+       * Renders the full post previews under the editor.
+       */
+      function renderPostPreviews() {
+        dom.postPreviewCanvases.forEach((canvas, index) => {
+          const ctx = canvas.getContext("2d");
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+
+          drawCanvasBackdrop(ctx, canvas.width, canvas.height);
+
+          if (state.image) {
+            drawUserArtwork(ctx, geometry.sliceRects[index].x);
+          }
+
+          drawPostPreviewOverlay(ctx);
+
+          if (!state.image) {
+            drawCenteredMessage(ctx, canvas.width, canvas.height, getSliceHeading(index), "Your exported post preview will appear here.");
+          }
+        });
+      }
+
+      /**
+       * Adds the grid-visible crop guide inside each full post preview.
+       * @param {CanvasRenderingContext2D} ctx
+       */
+      function drawPostPreviewOverlay(ctx) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.98)";
+        ctx.lineWidth = 6;
+        ctx.strokeRect(3, 3, CONFIG.postWidth - 6, CONFIG.postHeight - 6);
+        ctx.strokeStyle = "rgba(16, 124, 120, 0.95)";
+        ctx.lineWidth = 4;
+        ctx.setLineDash([18, 12]);
+        ctx.strokeRect(geometry.edgeMargin + 2, 2, CONFIG.gridVisibleWidth - 4, CONFIG.postHeight - 4);
+        ctx.restore();
+      }
+
+      /**
+       * Draws simple center copy for empty canvases.
+       * @param {CanvasRenderingContext2D} ctx
+       * @param {number} width
+       * @param {number} height
+       * @param {string} title
+       * @param {string} subtitle
+       */
+      function drawCenteredMessage(ctx, width, height, title, subtitle) {
+        ctx.save();
+        ctx.fillStyle = "rgba(255, 255, 255, 0.82)";
+        const boxWidth = Math.min(width * 0.5, 780);
+        const boxHeight = Math.min(height * 0.3, 210);
+        const boxX = (width - boxWidth) / 2;
+        const boxY = (height - boxHeight) / 2;
+        roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 24);
+        ctx.fill();
+
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#1f2430";
+        ctx.font = '700 42px "Avenir Next", "Segoe UI", sans-serif';
+        ctx.fillText(title, width / 2, boxY + boxHeight / 2 - 10);
+        ctx.fillStyle = "#635a52";
+        ctx.font = '500 24px "Avenir Next", "Segoe UI", sans-serif';
+        wrapCanvasText(ctx, subtitle, width / 2, boxY + boxHeight / 2 + 30, boxWidth - 54, 32);
+        ctx.restore();
+      }
+
+      /**
+       * Generates the guide template canvas that users can download for design work.
+       */
+      function buildTemplateCanvas() {
+        const canvas = document.createElement("canvas");
+        canvas.width = geometry.bannerWidth;
+        canvas.height = geometry.bannerHeight;
+        const ctx = canvas.getContext("2d");
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawCanvasBackdrop(ctx, canvas.width, canvas.height);
+        drawTemplateGuides(ctx, { showLabels: true });
+
+        return canvas;
+      }
+
+      /**
+       * Downloads the current guide template PNG.
+       */
+      function downloadTemplate() {
+        const canvas = buildTemplateCanvas();
+        const filename = `${CONFIG.templateFileName}-${geometry.bannerWidth}x${geometry.bannerHeight}.png`;
+        downloadCanvas(canvas, filename);
+      }
+
+      /**
+       * Builds a single export slice matching the exact post size.
+       * @param {number} index
+       */
+      function buildSliceCanvas(index) {
+        const slice = geometry.sliceRects[index];
+        const canvas = document.createElement("canvas");
+        canvas.width = CONFIG.postWidth;
+        canvas.height = CONFIG.postHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+
+        drawUserArtwork(ctx, slice.x);
+        return canvas;
+      }
+
+      /**
+       * Downloads one exported post.
+       * @param {number} index
+       */
+      function downloadSingleSlice(index) {
+        if (!state.image) {
+          return;
+        }
+
+        const canvas = buildSliceCanvas(index);
+        downloadCanvas(canvas, getSliceFileName(index));
+      }
+
+      /**
+       * Downloads every exported post image in sequence.
+       */
+      function downloadAllSlices() {
+        if (!state.image) {
+          return;
+        }
+
+        geometry.sliceRects.forEach((slice) => {
+          const canvas = buildSliceCanvas(slice.index);
+          downloadCanvas(canvas, getSliceFileName(slice.index));
+        });
+      }
+
+      /**
+       * Triggers a browser download from a canvas.
+       * @param {HTMLCanvasElement} canvas
+       * @param {string} filename
+       */
+      function downloadCanvas(canvas, filename) {
+        const link = document.createElement("a");
+        link.download = filename;
+        link.href = canvas.toDataURL("image/png");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+
+      /**
+       * Returns a friendly export filename.
+       * @param {number} index
+       */
+      function getSliceFileName(index) {
+        const padded = String(index + 1).padStart(2, "0");
+
+        if (geometry.sliceRects.length === 3) {
+          return `${padded}-${getSliceLabel(index).toLowerCase()}.png`;
+        }
+
+        return `${padded}-post-${index + 1}.png`;
+      }
+
+      /**
+       * Returns a human-friendly label for each slice.
+       * @param {number} index
+       */
+      function getSliceLabel(index) {
+        if (geometry.sliceRects.length === 3) {
+          return ["Left", "Center", "Right"][index];
+        }
+
+        return `Post ${index + 1}`;
+      }
+
+      /**
+       * Returns a display heading for preview cards and guide labels.
+       * @param {number} index
+       */
+      function getSliceHeading(index) {
+        if (geometry.sliceRects.length === 3) {
+          return `${getSliceLabel(index)} Post`;
+        }
+
+        return getSliceLabel(index);
+      }
+
+      /**
+       * Returns the uppercase template label used on the guide canvas.
+       * @param {number} index
+       */
+      function getTemplateLabel(index) {
+        if (geometry.sliceRects.length === 3) {
+          return ["LEFT POST", "CENTER POST", "RIGHT POST"][index];
+        }
+
+        return `POST ${index + 1}`;
+      }
+
+      /**
+       * Helper for dynamic status text.
+       * @param {string} message
+       */
+      function setStatus(message) {
+        dom.statusMessage.textContent = message;
+      }
+
+      /**
+       * Helper for the upload warning notice.
+       * @param {string} message
+       */
+      function setWarning(message) {
+        dom.warningMessage.textContent = message;
+        dom.warningMessage.hidden = message === "";
+      }
+
+      /**
+       * Shows an app-wide configuration error if someone edits the top config incorrectly.
+       * @param {string} message
+       */
+      function showConfigError(message) {
+        document.getElementById("appShell").hidden = true;
+        const errorNode = document.getElementById("configError");
+        errorNode.hidden = false;
+        errorNode.innerHTML = `
+          <h2>Configuration issue</h2>
+          <p>The app could not start because the size settings at the top of the JavaScript are invalid.</p>
+          <p><strong>${escapeHtml(message)}</strong></p>
+        `;
+      }
+
+      /**
+       * Returns the current zoom relative to the initial cover-fit size.
+       */
+      function getZoomPercent() {
+        return (state.scale / state.minScale) * 100;
+      }
+
+      /**
+       * Rounds sizes into a readable width × height string.
+       * @param {number} width
+       * @param {number} height
+       */
+      function formatSize(width, height) {
+        return `${Math.round(width)} × ${Math.round(height)}`;
+      }
+
+      /**
+       * Removes duplicate numeric positions and returns them in ascending order.
+       * @param {number[]} values
+       */
+      function uniqueSortedNumbers(values) {
+        return [...new Set(values)].sort((left, right) => left - right);
+      }
+
+      /**
+       * Small generic clamp utility.
+       * @param {number} value
+       * @param {number} min
+       * @param {number} max
+       */
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      /**
+       * Draws a rounded rectangle path.
+       * @param {CanvasRenderingContext2D} ctx
+       * @param {number} x
+       * @param {number} y
+       * @param {number} width
+       * @param {number} height
+       * @param {number} radius
+       */
+      function roundRect(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+      }
+
+      /**
+       * Draws a top label used on the main editor guide.
+       * @param {CanvasRenderingContext2D} ctx
+       * @param {number} centerX
+       * @param {string} label
+       */
+      function drawTopLabel(ctx, centerX, label) {
+        ctx.save();
+        ctx.font = '700 34px "Avenir Next", "Segoe UI", sans-serif';
+        const metrics = ctx.measureText(label);
+        const labelPaddingX = 22;
+        const labelHeight = 42;
+        const labelWidth = Math.ceil(metrics.width + labelPaddingX * 2);
+        const x = Math.round(centerX - labelWidth / 2);
+        const y = 20;
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(x, y, labelWidth, labelHeight);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#4f5665";
+        ctx.fillText(label, centerX, y + labelHeight / 2 + 1);
+        ctx.restore();
+      }
+
+      /**
+       * Wraps canvas text to a max width.
+       * @param {CanvasRenderingContext2D} ctx
+       * @param {string} text
+       * @param {number} centerX
+       * @param {number} startY
+       * @param {number} maxWidth
+       * @param {number} lineHeight
+       */
+      function wrapCanvasText(ctx, text, centerX, startY, maxWidth, lineHeight) {
+        const words = text.split(" ");
+        const lines = [];
+        let currentLine = "";
+
+        words.forEach((word) => {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+          if (ctx.measureText(testLine).width <= maxWidth) {
+            currentLine = testLine;
+          } else {
+            lines.push(currentLine);
+            currentLine = word;
+          }
+        });
+
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+
+        lines.forEach((line, index) => {
+          ctx.fillText(line, centerX, startY + index * lineHeight);
+        });
+      }
+
+      /**
+       * Escapes HTML inserted into the config error box.
+       * @param {string} value
+       */
+      function escapeHtml(value) {
+        return value
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+    </script>
+  </body>
+</html>
