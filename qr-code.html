@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QR Code Generator</title>
+<style>
+  *{box-sizing:border-box}
+  :root{color-scheme:light;--page:#f4f4f4;--card:#fff;--text:#111;--field:#fff;--border:#ccc;--preview:#e9edf2;--button:#111;--buttonText:#fff;--shadow:#0001}
+  body.dark{color-scheme:dark;--page:#101114;--card:#1b1d22;--text:#f5f5f5;--field:#252830;--border:#454954;--preview:#111318;--button:#f3f3f3;--buttonText:#111;--shadow:#0008}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--page);font:16px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);transition:background .18s,color .18s}
+  main{position:relative;width:min(92vw,560px);padding:28px;background:var(--card);border-radius:20px;box-shadow:0 12px 35px var(--shadow);transition:background .18s}
+  h1{margin:0 86px 22px 0;font-size:1.45rem}
+  #theme{position:absolute;top:20px;right:20px;width:auto;padding:8px 10px;border:1px solid var(--border);background:var(--field);color:var(--text);font-size:.85rem;font-weight:650}
+  .fields{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:12px}
+  .colors,.options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  input,select,button{width:100%;font:inherit;border-radius:10px}
+  input,select{padding:12px;border:1px solid var(--border);background:var(--field);color:var(--text)}
+  #preview{display:block;width:min(100%,420px);aspect-ratio:1;margin:24px auto 16px;background:var(--preview);border-radius:10px;transition:background .18s}
+  button{padding:13px;border:0;background:var(--button);color:var(--buttonText);font-weight:700;cursor:pointer}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  #error{min-height:1.25em;margin:12px 0 0;color:#b00020;font-size:.9rem}
+  @media(max-width:480px){.fields,.colors,.options{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <button id="theme" type="button" aria-pressed="false">Dark mode</button>
+  <h1>Rounded QR Code Generator</h1>
+  <div class="fields">
+    <input id="url" type="url" value="https://example.com" placeholder="https://example.com" aria-label="URL">
+    <select id="format" aria-label="Format">
+      <option value="svg">SVG</option>
+      <option value="png">PNG</option>
+    </select>
+  </div>
+  <div class="colors">
+    <input id="foreground" type="text" value="#000000" placeholder="#000000" aria-label="Foreground color">
+    <input id="background" type="text" value="transparent" placeholder="transparent or #ffffff" aria-label="Background color">
+  </div>
+  <div class="options">
+    <select id="ecc" aria-label="Error correction and complexity">
+      <option value="L" selected>L — Low complexity</option>
+      <option value="M">M — Medium</option>
+      <option value="Q">Q — Quartile</option>
+      <option value="H">H — High correction</option>
+    </select>
+    <input id="resolution" type="number" value="1000" min="64" step="1" inputmode="numeric" aria-label="PNG resolution" placeholder="PNG resolution">
+  </div>
+
+  <div id="error"></div>
+  <img id="preview" alt="Generated QR code">
+  <button id="download" type="button">Download SVG</button>
+</main>
+
+<script>
+function qrcode(url,type="svg",resolution=1000,ecc="L",foreground="#000",background="transparent"){
+const E="LMQH".indexOf((ecc+"").toUpperCase());if(E<0||!/^https?:\/\//i.test(url))throw Error("Enter a valid http:// or https:// URL");type=(type+"").toLowerCase();if(!["svg","png"].includes(type))throw Error("Type must be png or svg");const color=v=>{v=(v+"").trim();if(!v||!CSS.supports("color",v))throw Error("Enter valid CSS colors");const c=document.createElement("canvas").getContext("2d");c.fillStyle="#010203";c.fillStyle=v;if(c.fillStyle==="#010203"&&v.toLowerCase()!=="#010203")throw Error("Enter valid CSS colors");return c.fillStyle};foreground=color(foreground);background=background.trim().toLowerCase()==="transparent"?"transparent":color(background);
+const EC=[[7,10,15,20,26,18,20,24,30,18,20,24,26,30,22,24,28,30,28,28,28,28,30,30,26,28,30,30,30,30,30,30,30,30,30,30,30,30,30,30],[10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,26,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28],[13,22,18,26,18,24,18,22,20,24,28,26,30,22,24,24,28,28,26,30,28,30,30,30,30,28,30,30,30,30,30,30,30,30,30,30,30,30,30,30],[17,28,22,16,22,28,26,26,24,28,24,28,22,24,24,30,28,28,26,28,30,24,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30]];
+const NB=[[1,1,1,1,1,2,2,2,2,4,4,4,4,4,6,6,6,6,7,8,8,9,9,10,12,12,12,13,14,15,16,17,18,19,19,20,21,22,24,25],[1,1,1,2,2,4,4,4,5,5,5,8,9,9,10,10,11,13,14,16,17,17,18,20,21,23,25,26,28,29,31,33,35,37,38,40,43,45,47,49],[1,1,2,2,4,4,6,6,8,8,8,10,12,16,12,17,16,18,21,20,23,23,25,27,29,34,34,35,38,40,43,45,48,51,53,56,59,62,65,68],[1,1,2,4,4,4,5,6,8,8,11,11,16,16,18,16,19,21,25,25,25,34,30,32,35,37,40,42,45,48,51,54,57,60,63,66,70,74,77,81]];
+const bytes=[...new TextEncoder().encode(url)],raw=v=>{let n=(16*v+128)*v+64;if(v>=2){const a=Math.floor(v/7)+2;n-=(25*a-10)*a-55;if(v>=7)n-=36}return n},capacity=v=>Math.floor(raw(v)/8)-EC[E][v-1]*NB[E][v-1];
+let version=1;for(;version<=40;version++){const cc=version<10?8:16;if(4+cc+bytes.length*8<=capacity(version)*8)break}if(version>40)throw Error("URL is too long");
+const bits=[],put=(n,l)=>{for(let i=l-1;i>=0;i--)bits.push(n>>>i&1)};put(4,4);put(bytes.length,version<10?8:16);bytes.forEach(x=>put(x,8));
+const dataLen=capacity(version);put(0,Math.min(4,dataLen*8-bits.length));while(bits.length%8)bits.push(0);
+const data=[];for(let i=0;i<bits.length;i+=8){let x=0;for(let j=0;j<8;j++)x=x<<1|bits[i+j];data.push(x)}for(let p=0;data.length<dataLen;p++)data.push(p&1?17:236);
+const mul=(x,y)=>{let z=0;while(y){if(y&1)z^=x;y>>>=1;x=x<<1^(x>>>7)*0x11d}return z},divisor=d=>{const r=Array(d).fill(0);r[d-1]=1;let root=1;for(let i=0;i<d;i++){for(let j=0;j<d;j++)r[j]=mul(r[j],root)^(j+1<d?r[j+1]:0);root=mul(root,2)}return r},remainder=(d,div)=>{const r=Array(div.length).fill(0);for(const b of d){const f=b^r.shift();r.push(0);for(let i=0;i<r.length;i++)r[i]^=mul(div[i],f)}return r};
+const blocks=NB[E][version-1],ecLen=EC[E][version-1],total=Math.floor(raw(version)/8),shortBlocks=blocks-total%blocks,shortLen=Math.floor(total/blocks),div=divisor(ecLen),rows=[];let k=0;
+for(let i=0;i<blocks;i++){const len=shortLen-ecLen+(i<shortBlocks?0:1),d=data.slice(k,k+=len),r=remainder(d,div);if(i<shortBlocks)d.push(0);rows.push(d.concat(r))}
+const code=[];for(let i=0;i<rows[0].length;i++)for(let j=0;j<rows.length;j++)if(!(i===shortLen-ecLen&&j<shortBlocks))code.push(rows[j][i]);
+const size=version*4+17,base=Array.from({length:size},()=>Array(size).fill(false)),fn=Array.from({length:size},()=>Array(size).fill(false)),set=(x,y,d=false)=>{if(x>=0&&y>=0&&x<size&&y<size)base[y][x]=d,fn[y][x]=true},finder=(cx,cy)=>{for(let y=-4;y<=4;y++)for(let x=-4;x<=4;x++){const d=Math.max(Math.abs(x),Math.abs(y));set(cx+x,cy+y,d!==2&&d!==4)}};
+finder(3,3);finder(size-4,3);finder(3,size-4);
+const align=[];if(version>1){const count=Math.floor(version/7)+2,step=version===32?26:Math.ceil((version*4+count*2+1)/(count*2-2))*2;align.push(6);for(let p=size-7;align.length<count;p-=step)align.splice(1,0,p)}
+for(const y of align)for(const x of align){if(fn[y][x])continue;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)set(x+dx,y+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1)}
+for(let i=0;i<size;i++){if(!fn[6][i])set(i,6,!(i&1));if(!fn[i][6])set(6,i,!(i&1))}
+for(let i=0;i<8;i++){set(8,i);set(i,8);set(size-1-i,8);set(8,size-1-i)}set(8,8);set(8,size-8,true);
+if(version>=7){let r=version;for(let i=0;i<12;i++)r=r<<1^(r>>>11)*0x1f25;const v=version<<12|r;for(let i=0;i<18;i++){const b=!!(v>>>i&1),a=size-11+i%3,c=Math.floor(i/3);set(a,c,b);set(c,a,b)}}
+let bit=0;for(let right=size-1;right>=1;right-=2){if(right===6)right--;for(let v=0;v<size;v++){const y=((right+1)&2)===0?size-1-v:v;for(let j=0;j<2;j++){const x=right-j;if(!fn[y][x]&&bit<code.length*8)base[y][x]=!!(code[bit>>>3]>>>(7-(bit&7))&1),bit++}}}
+const masks=[(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,(x,y)=>(Math.floor(y/2)+Math.floor(x/3))%2===0,(x,y)=>(x*y)%2+(x*y)%3===0,(x,y)=>((x*y)%2+(x*y)%3)%2===0,(x,y)=>((x+y)%2+(x*y)%3)%2===0];
+const format=(m,a)=>{const f=[1,0,3,2][E]<<3|m;let r=f;for(let i=0;i<10;i++)r=r<<1^(r>>>9)*0x537;const b=(f<<10|r)^0x5412;for(let i=0;i<=5;i++)a[i][8]=!!(b>>>i&1);a[7][8]=!!(b>>>6&1);a[8][8]=!!(b>>>7&1);a[8][7]=!!(b>>>8&1);for(let i=9;i<15;i++)a[8][14-i]=!!(b>>>i&1);for(let i=0;i<8;i++)a[8][size-1-i]=!!(b>>>i&1);for(let i=8;i<15;i++)a[size-15+i][8]=!!(b>>>i&1);a[size-8][8]=true};
+const penalty=a=>{let p=0,dark=0;for(let y=0;y<size;y++)for(let x=0;x<size;x++){dark+=a[y][x];if(x&&y&&a[y][x]===a[y][x-1]&&a[y][x]===a[y-1][x]&&a[y][x]===a[y-1][x-1])p+=3}for(let pass=0;pass<2;pass++)for(let i=0;i<size;i++){let run=1,last=pass?a[0][i]:a[i][0],s="";for(let j=0;j<size;j++){const v=pass?a[j][i]:a[i][j];s+=v?"1":"0";if(j){if(v===last)run++;else{if(run>=5)p+=run-2;run=1;last=v}}}if(run>=5)p+=run-2;p+=(s.match(/10111010000/g)||[]).length*40+(s.match(/00001011101/g)||[]).length*40}return p+Math.floor(Math.abs(dark*20-size*size*10)/(size*size))*10};
+let matrix,best=Infinity;for(let m=0;m<8;m++){const a=base.map(r=>r.slice());for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(!fn[y][x]&&masks[m](x,y))a[y][x]=!a[y][x];format(m,a);const p=penalty(a);if(p<best)best=p,matrix=a}
+const quiet=4,dim=size+quiet*2,radius=.5,inFinder=(x,y)=>(x<7&&y<7)||(x>=size-7&&y<7)||(x<7&&y>=size-7),has=(x,y)=>x>=0&&y>=0&&x<size&&y<size&&matrix[y][x]&&!inFinder(x,y);
+let paths="";for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(has(x,y)){const n=has(x,y-1),e=has(x+1,y),s=has(x,y+1),w=has(x-1,y),tl=!n&&!w,tr=!n&&!e,br=!s&&!e,bl=!s&&!w,rtl=tl&&e&&s&&has(x+1,y+1)?1:radius,rtr=tr&&w&&s&&has(x-1,y+1)?1:radius,rbr=br&&w&&n&&has(x-1,y-1)?1:radius,rbl=bl&&e&&n&&has(x+1,y-1)?1:radius;paths+=`M${x+(tl?rtl:0)} ${y}H${x+1-(tr?rtr:0)}${tr?`Q${x+1} ${y} ${x+1} ${y+rtr}`:""}V${y+1-(br?rbr:0)}${br?`Q${x+1} ${y+1} ${x+1-rbr} ${y+1}`:""}H${x+(bl?rbl:0)}${bl?`Q${x} ${y+1} ${x} ${y+1-rbl}`:""}V${y+(tl?rtl:0)}${tl?`Q${x} ${y} ${x+rtl} ${y}`:""}Z`}
+const esc=s=>s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&apos;"}[c])),finderSvg=(x,y)=>`<path fill-rule="evenodd" d="M${x+1.8} ${y}H${x+5.2}Q${x+7} ${y} ${x+7} ${y+1.8}V${y+5.2}Q${x+7} ${y+7} ${x+5.2} ${y+7}H${x+1.8}Q${x} ${y+7} ${x} ${y+5.2}V${y+1.8}Q${x} ${y} ${x+1.8} ${y}ZM${x+1.8} ${y+1}H${x+5.2}Q${x+6} ${y+1} ${x+6} ${y+1.8}V${y+5.2}Q${x+6} ${y+6} ${x+5.2} ${y+6}H${x+1.8}Q${x+1} ${y+6} ${x+1} ${y+5.2}V${y+1.8}Q${x+1} ${y+1} ${x+1.8} ${y+1}Z"/><rect x="${x+2}" y="${y+2}" width="3" height="3" rx=".75"/>`;
+const bg=background==="transparent"?"":`<rect x="${-quiet}" y="${-quiet}" width="${dim}" height="${dim}" fill="${esc(background)}"/>`,body=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-quiet} ${-quiet} ${dim} ${dim}" shape-rendering="geometricPrecision">${bg}<g fill="${esc(foreground)}"><path d="${paths}"/>${finderSvg(0,0)}${finderSvg(size-7,0)}${finderSvg(0,size-7)}</g></svg>`;
+if(type==="svg")return"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(body);
+resolution=Math.max(64,Math.round(+resolution||1000));const canvas=document.createElement("canvas");canvas.width=canvas.height=resolution;const c=canvas.getContext("2d"),scale=resolution/dim;if(background!=="transparent"){c.fillStyle=background;c.fillRect(0,0,resolution,resolution)}c.fillStyle=foreground;c.translate(quiet*scale,quiet*scale);c.scale(scale,scale);c.fill(new Path2D(paths));
+const finderPath=(x,y)=>new Path2D(`M${x+1.8} ${y}H${x+5.2}Q${x+7} ${y} ${x+7} ${y+1.8}V${y+5.2}Q${x+7} ${y+7} ${x+5.2} ${y+7}H${x+1.8}Q${x} ${y+7} ${x} ${y+5.2}V${y+1.8}Q${x} ${y} ${x+1.8} ${y}ZM${x+1.8} ${y+1}H${x+5.2}Q${x+6} ${y+1} ${x+6} ${y+1.8}V${y+5.2}Q${x+6} ${y+6} ${x+5.2} ${y+6}H${x+1.8}Q${x+1} ${y+6} ${x+1} ${y+5.2}V${y+1.8}Q${x+1} ${y+1} ${x+1.8} ${y+1}Z`);[[0,0],[size-7,0],[0,size-7]].forEach(([x,y])=>{c.fillStyle=foreground;c.fill(finderPath(x,y),"evenodd");c.beginPath();c.roundRect(x+2,y+2,3,3,.75);c.fill()});return canvas.toDataURL("image/png")
+}
+
+const themeButton=document.querySelector("#theme"),urlInput=document.querySelector("#url"),formatInput=document.querySelector("#format"),foregroundInput=document.querySelector("#foreground"),backgroundInput=document.querySelector("#background"),eccInput=document.querySelector("#ecc"),resolutionInput=document.querySelector("#resolution"),preview=document.querySelector("#preview"),download=document.querySelector("#download"),error=document.querySelector("#error");
+let current="";
+function setTheme(dark){
+  document.body.classList.toggle("dark",dark);
+  themeButton.textContent=dark?"Light mode":"Dark mode";
+  themeButton.setAttribute("aria-pressed",String(dark));
+  try{localStorage.setItem("qr-theme",dark?"dark":"light")}catch{}
+}
+try{setTheme(localStorage.getItem("qr-theme")==="dark")}catch{setTheme(false)}
+themeButton.addEventListener("click",()=>setTheme(!document.body.classList.contains("dark")));
+function update(){
+  try{
+    resolutionInput.disabled=formatInput.value!=="png";
+    current=qrcode(urlInput.value.trim(),formatInput.value,resolutionInput.value,eccInput.value,foregroundInput.value,backgroundInput.value);
+    preview.src=current;
+    download.disabled=false;
+    download.textContent=`Download ${formatInput.value.toUpperCase()}`;
+    error.textContent="";
+  }catch(e){
+    current="";
+    preview.removeAttribute("src");
+    download.disabled=true;
+    error.textContent=e.message;
+  }
+}
+urlInput.addEventListener("input",update);
+formatInput.addEventListener("change",update);
+foregroundInput.addEventListener("input",update);
+backgroundInput.addEventListener("input",update);
+eccInput.addEventListener("change",update);
+resolutionInput.addEventListener("input",update);
+download.addEventListener("click",()=>{
+  if(!current)return;
+  const a=document.createElement("a");
+  a.href=current;
+  a.download=`qr-code.${formatInput.value}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+});
+update();
+</script>
+</body>
+</html>
